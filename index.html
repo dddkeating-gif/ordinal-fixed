@@ -4,383 +4,559 @@
   <meta charset="UTF-8" />
   <title>Ordinal</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Basic reset + layout -->
   <style>
+    :root {
+      --bg: #050608;
+      --card-bg: #10131a;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --text-main: #f5f5f7;
+      --text-muted: #b3b8c4;
+      --accent: #f6c55b;
+
+      /* Tile palette (6 colors, can extend to 8) */
+      --tile-1: #f7b267;
+      --tile-2: #f79d65;
+      --tile-3: #f4845f;
+      --tile-4: #f27059;
+      --tile-5: #86bbd8;
+      --tile-6: #5f6caf;
+      --tile-7: #b388eb;
+      --tile-8: #75c9b7;
+    }
+
     * {
       box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
       margin: 0;
       padding: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-        sans-serif;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #12131c 0, #050608 60%);
+      color: var(--text-main);
     }
 
     body {
-      min-height: 100vh;
-      background: #f5f5f5;
-      color: #222;
-    }
-
-    .layout {
       display: flex;
-      min-height: 100vh;
-    }
-
-    /* Left panel */
-    .left-panel {
-      flex: 1.1;
-      background: white;
-      padding: 3rem 3.5rem;
-      display: flex;
-      flex-direction: column;
+      align-items: stretch;
       justify-content: center;
     }
 
-    .left-panel h1 {
-      font-size: 3rem;
-      line-height: 1.05;
-      margin-bottom: 1rem;
-    }
-
-    .left-panel p.subtitle {
-      font-size: 1rem;
-      max-width: 26rem;
-      margin-bottom: 2rem;
-      color: #666;
-    }
-
-    .controls {
+    .app {
       display: flex;
-      flex-wrap: wrap;
-      gap: 0.75rem;
+      flex: 1;
+      min-height: 100vh;
+    }
+
+    /* Left panel with video background */
+    .left-panel {
+      position: relative;
+      overflow: hidden;
+      flex: 1 1 45%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      color: #ffffff;
+    }
+
+    /* Required video styles */
+    #bg-video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 0;
+      filter: brightness(0.6);
+      pointer-events: none;
+    }
+
+    .left-panel-content {
+      position: relative;
+      z-index: 1;
+      max-width: 420px;
+      text-align: left;
+      backdrop-filter: blur(8px);
+      background: linear-gradient(
+        135deg,
+        rgba(0, 0, 0, 0.55),
+        rgba(0, 0, 0, 0.2)
+      );
+      border-radius: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      padding: 1.75rem 1.75rem 1.5rem;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .logo {
+      width: 80%;
+      max-width: 300px;
       margin-bottom: 1rem;
+      display: block;
     }
 
-    button {
-      border: none;
-      padding: 0.7rem 1.3rem;
-      border-radius: 999px;
-      font-size: 0.9rem;
-      cursor: pointer;
-      background: #222;
-      color: white;
-      letter-spacing: 0.03em;
-      text-transform: uppercase;
-    }
-
-    button.secondary {
-      background: #ddd;
-      color: #222;
-    }
-
-    button:active {
-      transform: translateY(1px);
-    }
-
-    #message {
-      min-height: 1.3rem;
-      font-size: 0.9rem;
-      margin-top: 0.4rem;
-    }
-
-    #message.ok {
-      color: #0a8a4b;
-    }
-
-    #message.error {
-      color: #c62828;
-    }
-
-    .clue-toggle {
-      margin-top: 1.5rem;
-      font-size: 0.85rem;
-      cursor: pointer;
+    .tagline {
+      font-size: 0.95rem;
+      color: var(--accent);
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      color: #777;
+      margin: 0 0 0.4rem;
     }
 
-    .clue-toggle:hover {
-      color: #444;
+    .description {
+      margin: 0 0 0.9rem;
+      font-size: 0.95rem;
+      color: var(--text-main);
     }
 
-    #clue {
-      margin-top: 0.5rem;
+    .instructions {
+      margin: 0;
       font-size: 0.9rem;
-      max-width: 26rem;
-      color: #444;
+      color: var(--text-muted);
     }
 
-    /* Right panel */
+    /* Right panel – game area */
     .right-panel {
-      flex: 1;
+      flex: 1 1 55%;
+      padding: 2.5rem 2.5rem 2.5rem 2rem;
       display: flex;
-      align-items: stretch;
-      justify-content: stretch;
-      overflow: hidden;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .game-shell {
+      width: 100%;
+      max-width: 640px;
+      background: var(--card-bg);
+      border-radius: 20px;
+      border: 1px solid var(--border-subtle);
+      padding: 1.75rem 1.5rem 1.5rem;
+      box-shadow: 0 18px 36px rgba(0, 0, 0, 0.45);
+    }
+
+    .game-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 1.25rem;
+      gap: 0.75rem;
+    }
+
+    .game-title {
+      font-size: 1rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .puzzle-meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-align: right;
+    }
+
+    .puzzle-meta span {
+      opacity: 0.8;
+    }
+
+    .tiles-wrapper {
+      margin-top: 0.5rem;
     }
 
     .tiles {
       list-style: none;
-      width: 100%;
-      display: flex;
-      flex-direction: column;
+      margin: 0;
+      padding: 0;
     }
 
-    .tiles li {
-      flex: 1;
+    .tile {
+      position: relative;
+      margin-bottom: 0.55rem;
+      padding: 0.8rem 0.9rem;
+      border-radius: 12px;
+      border: 1px solid rgba(0, 0, 0, 0.15);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 1.4rem;
-      font-weight: 600;
-      font-size: 1rem;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: #fff;
+      gap: 0.75rem;
       cursor: grab;
+      font-size: 0.95rem;
+      color: #111217;
+      box-shadow: 0 10px 18px rgba(0, 0, 0, 0.25);
+      transition:
+        transform 120ms ease,
+        box-shadow 120ms ease,
+        filter 120ms ease;
       user-select: none;
-      transition: background 0.15s ease, transform 0.1s ease;
+      -webkit-user-select: none;
+      touch-action: pan-y;
     }
 
-    .tiles li span.label {
-      pointer-events: none;
-    }
-
-    .tiles li span.handle {
-      font-size: 1.1rem;
-      opacity: 0.8;
-      pointer-events: none;
-    }
-
-    .tiles li.dragging {
-      opacity: 0.85;
-      transform: scale(1.02);
+    .tile:active {
       cursor: grabbing;
     }
 
-    .tiles li.correct {
-      outline: 3px solid rgba(255, 255, 255, 0.85);
+    .tile-label {
+      font-weight: 600;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      opacity: 0.82;
     }
 
-    .tiles li.incorrect {
-      filter: grayscale(0.2) brightness(0.9);
-      opacity: 0.95;
+    .tile-text {
+      flex: 1;
     }
 
-    /* Optional ghost styling for fallback drag */
-    .tiles li.ghost {
-      opacity: 0.6;
+    .tile-handle {
+      font-size: 1.1rem;
+      opacity: 0.5;
     }
 
-    /* Responsive */
+    /* Palette classes for up to 8 tiles */
+    .tile-1 { background: var(--tile-1); }
+    .tile-2 { background: var(--tile-2); }
+    .tile-3 { background: var(--tile-3); }
+    .tile-4 { background: var(--tile-4); }
+    .tile-5 { background: var(--tile-5); }
+    .tile-6 { background: var(--tile-6); color: #f1f3ff; }
+    .tile-7 { background: var(--tile-7); }
+    .tile-8 { background: var(--tile-8); }
+
+    /* SortableJS visual states */
+    .tile-ghost {
+      opacity: 0.55;
+      filter: grayscale(0.1) brightness(1.05);
+    }
+
+    .tile-chosen {
+      transform: scale(1.02);
+      box-shadow: 0 18px 30px rgba(0, 0, 0, 0.35);
+    }
+
+    .tile-drag {
+      cursor: grabbing;
+    }
+
+    /* Controls + status */
+    .game-footer {
+      margin-top: 1.2rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem;
+      justify-content: space-between;
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .btn {
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      padding: 0.55rem 1.1rem;
+      background: #1b1f2b;
+      color: var(--text-main);
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition:
+        background 120ms ease,
+        border-color 120ms ease,
+        transform 80ms ease;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #1b1304;
+      border-color: rgba(0, 0, 0, 0.15);
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      background: #24293a;
+    }
+
+    .btn-primary:hover {
+      background: #ffd16e;
+    }
+
+    .status {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      min-height: 1.2em;
+    }
+
+    .status--correct {
+      color: #6be7a9;
+    }
+
+    .status--incorrect {
+      color: #ff9b82;
+    }
+
+    /* Responsive tweaks */
     @media (max-width: 900px) {
-      .layout {
+      .app {
         flex-direction: column;
       }
 
       .left-panel {
-        padding: 2rem 1.5rem;
+        flex: 0 0 40vh;
+        padding: 1.5rem;
+      }
+
+      .left-panel-content {
+        max-width: 100%;
       }
 
       .right-panel {
-        min-height: 320px;
+        padding: 1.5rem 1.25rem 2rem;
       }
 
-      .tiles li {
-        font-size: 0.85rem;
-        padding: 0 1rem;
-  
-        /* Video background and logo styling */
-  .left-panel {
-    position: relative;
-    overflow: hidden;
-  }
-  #bg-video {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    z-index: 0;
-    filter: brightness(0.6);
-  }
-  .left-panel-content {
-    
-    position: relative;
-    z-index: 1;
-  }
-  
-       .logo {
-    width: 80%;
-    max-width: 300px;
-    margin-bottom: 1rem;
-  }
-}
+      .game-shell {
+        padding: 1.4rem 1.1rem 1.1rem;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .game-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .puzzle-meta {
+        text-align: left;
+      }
+
+      .tile {
+        padding: 0.75rem 0.8rem;
+      }
+
+      .button-row {
+        width: 100%;
+      }
+
+      .game-footer {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .btn {
+        width: auto;
+      }
     }
   </style>
 </head>
-  <body>
-  
-<section class="left-panel">
-        <video id="bg-video" autoplay muted loop playsinline>>
-    <source src="bg.webm" type="video/webm" />
-  </video>
-  <div class="left-panel-content">
-  
-          <img src="Ordinal%20Logo-01-01.png" alt="Ordinal logo" class="logo" />
-      <p class="subtitle">
-        Drag the tiles until you think they’re in the correct order.
-      </p>
 
-      <div class="controls">
-        <button id="checkBtn">Check order</button>
-        <button id="shuffleBtn" class="secondary">Shuffle</button>
-        <button id="revealBtn" class="secondary">Reveal answer</button>
+<body>
+  <div class="app">
+    <!-- LEFT PANEL: logo + copy over video background -->
+    <section class="left-panel" aria-label="Game information">
+      <video
+        id="bg-video"
+        autoplay
+        muted
+        loop
+        playsinline
+      >
+        <source src="/bg.webm" type="video/webm" />
+        <!-- Silent fallback; background just becomes solid. -->
+      </video>
+
+      <div class="left-panel-content">
+        <img
+          src="Ordinal%20Logo-01-01.png"
+          alt="Ordinal logo"
+          class="logo"
+        />
+
+        <p class="tagline">Concept Sorting Game</p>
+        <p class="description">
+          Six tiles, one hidden spectrum. Arrange the concepts from one end of the idea-space to the other.
+        </p>
+        <p class="instructions">
+          Drag the tiles until you think they’re in the correct order.
+        </p>
       </div>
+    </section>
 
-      <div id="message"></div>
+    <!-- RIGHT PANEL: actual game -->
+    <section class="right-panel" aria-label="Game board">
+      <div class="game-shell">
+        <header class="game-header">
+          <div class="game-title">Today’s Ordinal</div>
+          <div class="puzzle-meta">
+            <span id="puzzle-length-label">6 tiles</span>
+          </div>
+        </header>
 
-      <div class="clue-toggle" id="toggleClue">
-        Show / hide clue
+        <div class="tiles-wrapper">
+          <ul id="tile-list" class="tiles" aria-label="Reorder tiles to solve the puzzle">
+            <!--
+              data-correct-index defines the true order along the hidden spectrum.
+              You can expand to 7–8 tiles by adding <li> and a matching .tile-N class.
+            -->
+            <li class="tile tile-1" data-correct-index="0">
+              <div class="tile-text">
+                <div class="tile-label">1</div>
+                <div>Stone-age tech</div>
+              </div>
+              <div class="tile-handle" aria-hidden="true">⋮⋮</div>
+            </li>
+            <li class="tile tile-2" data-correct-index="1">
+              <div class="tile-text">
+                <div class="tile-label">2</div>
+                <div>Analog &amp; mechanical</div>
+              </div>
+              <div class="tile-handle" aria-hidden="true">⋮⋮</div>
+            </li>
+            <li class="tile tile-3" data-correct-index="2">
+              <div class="tile-text">
+                <div class="tile-label">3</div>
+                <div>Early digital</div>
+              </div>
+              <div class="tile-handle" aria-hidden="true">⋮⋮</div>
+            </li>
+            <li class="tile tile-4" data-correct-index="3">
+              <div class="tile-text">
+                <div class="tile-label">4</div>
+                <div>Modern consumer tech</div>
+              </div>
+              <div class="tile-handle" aria-hidden="true">⋮⋮</div>
+            </li>
+            <li class="tile tile-5" data-correct-index="4">
+              <div class="tile-text">
+                <div class="tile-label">5</div>
+                <div>Cutting-edge research</div>
+              </div>
+              <div class="tile-handle" aria-hidden="true">⋮⋮</div>
+            </li>
+            <li class="tile tile-6" data-correct-index="5">
+              <div class="tile-text">
+                <div class="tile-label">6</div>
+                <div>Speculative sci-fi</div>
+              </div>
+              <div class="tile-handle" aria-hidden="true">⋮⋮</div>
+            </li>
+          </ul>
+        </div>
+
+        <footer class="game-footer">
+          <div class="button-row">
+            <button id="check-button" class="btn btn-primary" type="button">
+              ✓ Check order
+            </button>
+            <button id="shuffle-button" class="btn" type="button">
+              ↻ Shuffle
+            </button>
+          </div>
+          <div
+            id="status-message"
+            class="status"
+            role="status"
+            aria-live="polite"
+          ></div>
+        </footer>
       </div>
-      <p id="clue" style="display:none;"></p>
-      </div>
-
-</section>
-
-      
-<section class="right-panel">
-      <ul id="tiles" class="tiles"></ul>
     </section>
   </div>
 
-  <!-- SortableJS for mobile-friendly drag -->
-  <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+  <!-- SortableJS (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 
   <script>
-    // Puzzle configuration
+    document.addEventListener("DOMContentLoaded", function () {
+      const tileList = document.getElementById("tile-list");
+      const tiles = Array.from(tileList.querySelectorAll(".tile"));
+      const statusMessage = document.getElementById("status-message");
+      const checkButton = document.getElementById("check-button");
+      const shuffleButton = document.getElementById("shuffle-button");
+      const puzzleLengthLabel = document.getElementById("puzzle-length-label");
 
-    const puzzle = {
-      clue: "Arrange the items from lowest to highest in terms of vertical position relative to Earth’s surface.",
-      itemsInCorrectOrder: [
-        "DEEP OCEAN TRENCH",
-        "GROUND FLOOR",
-        "HILLTOP",
-        "MOUNTAIN SUMMIT",
-        "COMMERCIAL AIRPLANE",
-        "LOW-EARTH ORBIT"
-      ]
-    };
+      // Ensure each tile has a correct index; this is the "true" conceptual order.
+      const correctOrder = tiles
+        .slice()
+        .sort(
+          (a, b) =>
+            Number(a.dataset.correctIndex) - Number(b.dataset.correctIndex)
+        )
+        .map((tile) => tile.dataset.correctIndex);
 
-    // Map each item to a colour so the colour stays with the text when dragged
-    const itemColors = {
-      "DEEP OCEAN TRENCH": "#ff6361",
-      "GROUND FLOOR": "#ffa600",
-      "HILLTOP": "#008585",
-      "MOUNTAIN SUMMIT": "#c7522a",
-      "COMMERCIAL AIRPLANE": "#194a7a",
-      "LOW-EARTH ORBIT": "#e5c185"
-    };
+      // Label for UI (works whether you use 6, 7, or 8 tiles)
+      puzzleLengthLabel.textContent = `${tiles.length} tile${
+        tiles.length === 1 ? "" : "s"
+      }`;
 
-    // Utility functions
-    function shuffle(array) {
-      const a = array.slice();
-      for (let i = a.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [a[i], a[j]] = [a[j], a[i]];
+      function getCurrentOrder() {
+        return Array.from(tileList.children).map(
+          (li) => li.dataset.correctIndex
+        );
       }
-      return a;
-    }
 
-    function clearClassesOnTiles() {
-      document
-        .querySelectorAll("#tiles li")
-        .forEach(li => li.classList.remove("correct", "incorrect"));
-    }
+      function isCorrectOrder() {
+        const current = getCurrentOrder();
+        if (current.length !== correctOrder.length) return false;
+        for (let i = 0; i < current.length; i++) {
+          if (current[i] !== correctOrder[i]) return false;
+        }
+        return true;
+      }
 
-    // DOM references
-    const tilesList = document.getElementById("tiles");
-    const clueEl = document.getElementById("clue");
-    const messageEl = document.getElementById("message");
+      function setStatus(message, variant) {
+        statusMessage.textContent = message || "";
+        statusMessage.classList.remove("status--correct", "status--incorrect");
+        if (variant) {
+          statusMessage.classList.add(`status--${variant}`);
+        }
+      }
 
-    clueEl.textContent = puzzle.clue;
+      function shuffleTiles() {
+        const shuffled = Array.from(tileList.children);
+        for (let i = shuffled.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        shuffled.forEach((node) => tileList.appendChild(node));
+        setStatus("Shuffled. Try again.", null);
+      }
 
-    // Render tiles with colours attached to the items
-    function renderTiles(order) {
-      tilesList.innerHTML = "";
-      order.forEach(text => {
-        const li = document.createElement("li");
-        // Assign background colour based on the item's text
-        li.style.background = itemColors[text] || "#888";
-        li.innerHTML = '<span class="label">' + text + '</span><span class="handle">⋮⋮</span>';
-        tilesList.appendChild(li);
-      });
-    }
-
-    // Initialise SortableJS with smooth options for mobile
-    let sortable;
-    function initSortable() {
-      if (sortable) sortable.destroy();
-      sortable = new Sortable(tilesList, {
-        animation: 200,
+      // Initialize SortableJS with the requested settings
+      Sortable.create(tileList, {
+        animation: 150,
         forceFallback: true,
         fallbackOnBody: true,
-        swapThreshold: 0.6
+        swapThreshold: 0.6,
+        ghostClass: "tile-ghost",
+        chosenClass: "tile-chosen",
+        dragClass: "tile-drag",
       });
-    }
 
-    // Initial render and shuffle
-    renderTiles(shuffle(puzzle.itemsInCorrectOrder));
-    initSortable();
-
-    // Game controls
-    document.getElementById("checkBtn").addEventListener("click", () => {
-      clearClassesOnTiles();
-
-      const currentOrder = Array.from(
-        tilesList.querySelectorAll("li span.label")
-      ).map(span => span.textContent.trim());
-
-      const correct = puzzle.itemsInCorrectOrder;
-      let allCorrect = true;
-
-      const liNodes = tilesList.querySelectorAll("li");
-      currentOrder.forEach((word, idx) => {
-        if (word === correct[idx]) {
-          liNodes[idx].classList.add("correct");
+      checkButton.addEventListener("click", () => {
+        if (isCorrectOrder()) {
+          setStatus("Perfect order. Spectrum unlocked.", "correct");
         } else {
-          liNodes[idx].classList.add("incorrect");
-          allCorrect = false;
+          setStatus("Not quite yet. Adjust and try again.", "incorrect");
         }
       });
 
-      if (allCorrect) {
-        messageEl.textContent = "Perfect! You nailed the spectrum.";
-        messageEl.className = "ok";
-      } else {
-        messageEl.textContent = "Not quite yet. Tiles in outline are in the right spot.";
-        messageEl.className = "error";
-      }
-    });
+      shuffleButton.addEventListener("click", () => {
+        shuffleTiles();
+      });
 
-    document.getElementById("shuffleBtn").addEventListener("click", () => {
-      clearClassesOnTiles();
-      messageEl.textContent = "";
-      messageEl.className = "";
-      renderTiles(shuffle(puzzle.itemsInCorrectOrder));
-      initSortable();
-    });
-
-    document.getElementById("revealBtn").addEventListener("click", () => {
-      clearClassesOnTiles();
-      renderTiles(puzzle.itemsInCorrectOrder.slice());
-      messageEl.textContent = "That’s the correct order.";
-      messageEl.className = "ok";
-      initSortable();
-    });
-
-    // Toggle the clue display
-    document.getElementById("toggleClue").addEventListener("click", () => {
-      clueEl.style.display = clueEl.style.display === "none" ? "block" : "none";
+      // Optional: shuffle on first load so the user doesn’t see the answer.
+      shuffleTiles();
     });
   </script>
 </body>
