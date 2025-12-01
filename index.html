@@ -166,7 +166,10 @@
       opacity: 0.95;
     }
 
-    /* Colours are assigned via script per item */
+    /* Optional ghost styling for fallback drag */
+    .tiles li.ghost {
+      opacity: 0.6;
+    }
 
     /* Responsive */
     @media (max-width: 900px) {
@@ -193,7 +196,9 @@
   <div class="layout">
     <section class="left-panel">
       <h1>Ordinal</h1>
-      <p class="subtitle">Drag the tiles until you think they’re in the correct order.</p>
+      <p class="subtitle">
+        Drag the tiles until you think they’re in the correct order.
+      </p>
 
       <div class="controls">
         <button id="checkBtn">Check order</button>
@@ -257,13 +262,14 @@
         .forEach(li => li.classList.remove("correct", "incorrect"));
     }
 
-    // Render tiles
+    // DOM references
     const tilesList = document.getElementById("tiles");
     const clueEl = document.getElementById("clue");
     const messageEl = document.getElementById("message");
 
     clueEl.textContent = puzzle.clue;
 
+    // Render tiles with colours attached to the items
     function renderTiles(order) {
       tilesList.innerHTML = "";
       order.forEach(text => {
@@ -275,13 +281,21 @@
       });
     }
 
+    // Initialise SortableJS with smooth options for mobile
+    let sortable;
+    function initSortable() {
+      if (sortable) sortable.destroy();
+      sortable = new Sortable(tilesList, {
+        animation: 200,
+        forceFallback: true,
+        fallbackOnBody: true,
+        swapThreshold: 0.6
+      });
+    }
+
     // Initial render and shuffle
     renderTiles(shuffle(puzzle.itemsInCorrectOrder));
-
-    // Initialize SortableJS for drag and drop (mobile-friendly)
-    let sortable = new Sortable(tilesList, {
-      animation: 150
-    });
+    initSortable();
 
     // Game controls
     document.getElementById("checkBtn").addEventListener("click", () => {
@@ -318,8 +332,7 @@
       messageEl.textContent = "";
       messageEl.className = "";
       renderTiles(shuffle(puzzle.itemsInCorrectOrder));
-      sortable.destroy();
-      sortable = new Sortable(tilesList, { animation: 150 });
+      initSortable();
     });
 
     document.getElementById("revealBtn").addEventListener("click", () => {
@@ -327,10 +340,10 @@
       renderTiles(puzzle.itemsInCorrectOrder.slice());
       messageEl.textContent = "That’s the correct order.";
       messageEl.className = "ok";
-      sortable.destroy();
-      sortable = new Sortable(tilesList, { animation: 150 });
+      initSortable();
     });
 
+    // Toggle the clue display
     document.getElementById("toggleClue").addEventListener("click", () => {
       clueEl.style.display = clueEl.style.display === "none" ? "block" : "none";
     });
