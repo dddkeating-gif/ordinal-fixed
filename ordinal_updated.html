@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ordinal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: #f5f5f5;
+      color: #222;
+    }
+
+    .layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Left panel */
+    .left-panel {
+      flex: 1.1;
+      background: white;
+      padding: 3rem 3.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .left-panel h1 {
+      font-size: 3rem;
+      line-height: 1.05;
+      margin-bottom: 1rem;
+    }
+
+    .left-panel p.subtitle {
+      font-size: 1rem;
+      max-width: 26rem;
+      margin-bottom: 2rem;
+      color: #666;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    button {
+      border: none;
+      padding: 0.7rem 1.3rem;
+      border-radius: 999px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      background: #222;
+      color: white;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    button.secondary {
+      background: #ddd;
+      color: #222;
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    #message {
+      min-height: 1.3rem;
+      font-size: 0.9rem;
+      margin-top: 0.4rem;
+    }
+
+    #message.ok {
+      color: #0a8a4b;
+    }
+
+    #message.error {
+      color: #c62828;
+    }
+
+    .clue-toggle {
+      margin-top: 1.5rem;
+      font-size: 0.85rem;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #777;
+    }
+
+    .clue-toggle:hover {
+      color: #444;
+    }
+
+    #clue {
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+      max-width: 26rem;
+      color: #444;
+    }
+
+    /* Right panel */
+    .right-panel {
+      flex: 1;
+      display: flex;
+      align-items: stretch;
+      justify-content: stretch;
+      overflow: hidden;
+    }
+
+    .tiles {
+      list-style: none;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .tiles li {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.4rem;
+      font-weight: 600;
+      font-size: 1rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #fff;
+      cursor: grab;
+      user-select: none;
+      transition: background 0.15s ease, transform 0.1s ease;
+    }
+
+    .tiles li span.label {
+      pointer-events: none;
+    }
+
+    .tiles li span.handle {
+      font-size: 1.1rem;
+      opacity: 0.8;
+      pointer-events: none;
+    }
+
+    .tiles li.dragging {
+      opacity: 0.85;
+      transform: scale(1.02);
+      cursor: grabbing;
+    }
+
+    .tiles li.correct {
+      outline: 3px solid rgba(255, 255, 255, 0.85);
+    }
+
+    .tiles li.incorrect {
+      filter: grayscale(0.2) brightness(0.9);
+      opacity: 0.95;
+    }
+
+    /* Colours are assigned via script per item */
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .layout {
+        flex-direction: column;
+      }
+
+      .left-panel {
+        padding: 2rem 1.5rem;
+      }
+
+      .right-panel {
+        min-height: 320px;
+      }
+
+      .tiles li {
+        font-size: 0.85rem;
+        padding: 0 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <section class="left-panel">
+      <h1>Ordinal</h1>
+      <p class="subtitle">Drag the tiles until you think they’re in the correct order.</p>
+
+      <div class="controls">
+        <button id="checkBtn">Check order</button>
+        <button id="shuffleBtn" class="secondary">Shuffle</button>
+        <button id="revealBtn" class="secondary">Reveal answer</button>
+      </div>
+
+      <div id="message"></div>
+
+      <div class="clue-toggle" id="toggleClue">
+        Show / hide clue
+      </div>
+      <p id="clue" style="display:none;"></p>
+    </section>
+
+    <section class="right-panel">
+      <ul id="tiles" class="tiles"></ul>
+    </section>
+  </div>
+
+  <!-- SortableJS for mobile-friendly drag -->
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+
+  <script>
+    // Puzzle configuration
+    const puzzle = {
+      clue: "Arrange the items from lowest to highest in terms of vertical position relative to Earth’s surface.",
+      itemsInCorrectOrder: [
+        "DEEP OCEAN TRENCH",
+        "GROUND FLOOR",
+        "HILLTOP",
+        "MOUNTAIN SUMMIT",
+        "COMMERCIAL AIRPLANE",
+        "LOW-EARTH ORBIT"
+      ]
+    };
+
+    // Map each item to a colour so the colour stays with the text when dragged
+    const itemColors = {
+      "DEEP OCEAN TRENCH": "#ff6361",
+      "GROUND FLOOR": "#ffa600",
+      "HILLTOP": "#008585",
+      "MOUNTAIN SUMMIT": "#c7522a",
+      "COMMERCIAL AIRPLANE": "#194a7a",
+      "LOW-EARTH ORBIT": "#e5c185"
+    };
+
+    // Utility functions
+    function shuffle(array) {
+      const a = array.slice();
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function clearClassesOnTiles() {
+      document
+        .querySelectorAll("#tiles li")
+        .forEach(li => li.classList.remove("correct", "incorrect"));
+    }
+
+    // Render tiles
+    const tilesList = document.getElementById("tiles");
+    const clueEl = document.getElementById("clue");
+    const messageEl = document.getElementById("message");
+
+    clueEl.textContent = puzzle.clue;
+
+    function renderTiles(order) {
+      tilesList.innerHTML = "";
+      order.forEach(text => {
+        const li = document.createElement("li");
+        // Assign background colour based on the item's text
+        li.style.background = itemColors[text] || "#888";
+        li.innerHTML = '<span class="label">' + text + '</span><span class="handle">⋮⋮</span>';
+        tilesList.appendChild(li);
+      });
+    }
+
+    // Initial render and shuffle
+    renderTiles(shuffle(puzzle.itemsInCorrectOrder));
+
+    // Initialize SortableJS for drag and drop (mobile-friendly)
+    let sortable = new Sortable(tilesList, {
+      animation: 150
+    });
+
+    // Game controls
+    document.getElementById("checkBtn").addEventListener("click", () => {
+      clearClassesOnTiles();
+
+      const currentOrder = Array.from(
+        tilesList.querySelectorAll("li span.label")
+      ).map(span => span.textContent.trim());
+
+      const correct = puzzle.itemsInCorrectOrder;
+      let allCorrect = true;
+
+      const liNodes = tilesList.querySelectorAll("li");
+      currentOrder.forEach((word, idx) => {
+        if (word === correct[idx]) {
+          liNodes[idx].classList.add("correct");
+        } else {
+          liNodes[idx].classList.add("incorrect");
+          allCorrect = false;
+        }
+      });
+
+      if (allCorrect) {
+        messageEl.textContent = "Perfect! You nailed the spectrum.";
+        messageEl.className = "ok";
+      } else {
+        messageEl.textContent = "Not quite yet. Tiles in outline are in the right spot.";
+        messageEl.className = "error";
+      }
+    });
+
+    document.getElementById("shuffleBtn").addEventListener("click", () => {
+      clearClassesOnTiles();
+      messageEl.textContent = "";
+      messageEl.className = "";
+      renderTiles(shuffle(puzzle.itemsInCorrectOrder));
+      sortable.destroy();
+      sortable = new Sortable(tilesList, { animation: 150 });
+    });
+
+    document.getElementById("revealBtn").addEventListener("click", () => {
+      clearClassesOnTiles();
+      renderTiles(puzzle.itemsInCorrectOrder.slice());
+      messageEl.textContent = "That’s the correct order.";
+      messageEl.className = "ok";
+      sortable.destroy();
+      sortable = new Sortable(tilesList, { animation: 150 });
+    });
+
+    document.getElementById("toggleClue").addEventListener("click", () => {
+      clueEl.style.display = clueEl.style.display === "none" ? "block" : "none";
+    });
+  </script>
+</body>
+</html>
