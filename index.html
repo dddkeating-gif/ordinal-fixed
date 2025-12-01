@@ -188,14 +188,41 @@
       .tiles li {
         font-size: 0.85rem;
         padding: 0 1rem;
-      }
+  
+        /* Video background and logo styling */
+  .left-panel {
+    position: relative;
+    overflow: hidden;
+  }
+  #bg-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+    filter: brightness(0.6);
+  }
+  .left-panel-content {
+    position: relative;
+    z-index: 1;
+  }
+  .logo {
+    width: 80%;
+    max-width: 300px;
+    margin-bottom: 1rem;
+  }
+}
     }
   </style>
 </head>
-<body>
-  <div class="layout">
-    <section class="left-panel">
-      <h1>Ordinal</h1>
+<section class="left-panel">
+        <video id="bg-video" autoplay muted loop playsinline>>
+    <source src="bg.webm" type="video/webm" />
+  </video>
+  <div class="left-panel-content">
+  
+          <img src="Ordinal%20Logo-01-01.png" alt="Ordinal logo" class="logo" />
       <p class="subtitle">
         Drag the tiles until you think they’re in the correct order.
       </p>
@@ -212,9 +239,12 @@
         Show / hide clue
       </div>
       <p id="clue" style="display:none;"></p>
-    </section>
+      </div>
 
-    <section class="right-panel">
+</section>
+
+      
+<section class="right-panel">
       <ul id="tiles" class="tiles"></ul>
     </section>
   </div>
@@ -224,6 +254,7 @@
 
   <script>
     // Puzzle configuration
+
     const puzzle = {
       clue: "Arrange the items from lowest to highest in terms of vertical position relative to Earth’s surface.",
       itemsInCorrectOrder: [
