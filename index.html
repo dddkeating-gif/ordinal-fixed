@@ -166,15 +166,7 @@
       opacity: 0.95;
     }
 
-    /* Stripe colours by position */
-    .tiles li:nth-child(1) { background: #ffc400; }
-    .tiles li:nth-child(2) { background: #ff9100; }
-    .tiles li:nth-child(3) { background: #ff5252; }
-    .tiles li:nth-child(4) { background: #e040fb; }
-    .tiles li:nth-child(5) { background: #7c4dff; }
-    .tiles li:nth-child(6) { background: #2979ff; }
-    .tiles li:nth-child(7) { background: #00c853; }
-    .tiles li:nth-child(8) { background: #26a69a; }
+    /* Colours are assigned via script per item */
 
     /* Responsive */
     @media (max-width: 900px) {
@@ -201,10 +193,7 @@
   <div class="layout">
     <section class="left-panel">
       <h1>Ordinal</h1>
-      <p class="subtitle">
-        Drag the tiles on the right until you think they’re in the correct order.
-        Then hit “Check order” to see how close you are.
-      </p>
+      <p class="subtitle">Drag the tiles until you think they’re in the correct order.</p>
 
       <div class="controls">
         <button id="checkBtn">Check order</button>
@@ -234,14 +223,22 @@
       clue: "Arrange the items from lowest to highest in terms of vertical position relative to Earth’s surface.",
       itemsInCorrectOrder: [
         "DEEP OCEAN TRENCH",
-        "BASEMENT",
         "GROUND FLOOR",
         "HILLTOP",
         "MOUNTAIN SUMMIT",
         "COMMERCIAL AIRPLANE",
-        "WEATHER BALLOON",
         "LOW-EARTH ORBIT"
       ]
+    };
+
+    // Map each item to a colour so the colour stays with the text when dragged
+    const itemColors = {
+      "DEEP OCEAN TRENCH": "#ff6361",
+      "GROUND FLOOR": "#ffa600",
+      "HILLTOP": "#008585",
+      "MOUNTAIN SUMMIT": "#c7522a",
+      "COMMERCIAL AIRPLANE": "#194a7a",
+      "LOW-EARTH ORBIT": "#e5c185"
     };
 
     // Utility functions
@@ -271,6 +268,8 @@
       tilesList.innerHTML = "";
       order.forEach(text => {
         const li = document.createElement("li");
+        // Assign background colour based on the item's text
+        li.style.background = itemColors[text] || "#888";
         li.innerHTML = '<span class="label">' + text + '</span><span class="handle">⋮⋮</span>';
         tilesList.appendChild(li);
       });
