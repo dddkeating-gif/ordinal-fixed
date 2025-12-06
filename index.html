@@ -15,13 +15,14 @@
       --text-muted: #b3b8c4;
       --accent: #f6c55b;
 
-      /* Tile palette (6 colors, can extend to 8) */
-      --tile-1: #f7b267;
-      --tile-2: #f79d65;
-      --tile-3: #f4845f;
-      --tile-4: #f27059;
-      --tile-5: #86bbd8;
-      --tile-6: #5f6caf;
+      /* Updated tile palette (exactly six colours) */
+      --tile-1: #ff6361;
+      --tile-2: #ffa600;
+      --tile-3: #008585;
+      --tile-4: #c7522a;
+      --tile-5: #194a7a;
+      --tile-6: #e5c185;
+      /* default colours for potential future tiles */
       --tile-7: #b388eb;
       --tile-8: #75c9b7;
     }
@@ -100,24 +101,10 @@
       display: block;
     }
 
-    .tagline {
-      font-size: 0.95rem;
-      color: var(--accent);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      margin: 0 0 0.4rem;
-    }
-
-    .description {
-      margin: 0 0 0.9rem;
-      font-size: 0.95rem;
-      color: var(--text-main);
-    }
-
     .instructions {
       margin: 0;
-      font-size: 0.9rem;
-      color: var(--text-muted);
+      font-size: 0.95rem;
+      color: var(--text-main);
     }
 
     /* Right panel – game area */
@@ -178,7 +165,7 @@
       position: relative;
       margin-bottom: 0.55rem;
       padding: 0.8rem 0.9rem;
-      border-radius: 12px;
+      border-radius: 0; /* square corners for tiles */
       border: 1px solid rgba(0, 0, 0, 0.15);
       display: flex;
       align-items: center;
@@ -201,14 +188,6 @@
       cursor: grabbing;
     }
 
-    .tile-label {
-      font-weight: 600;
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-      opacity: 0.82;
-    }
-
     .tile-text {
       flex: 1;
     }
@@ -224,7 +203,7 @@
     .tile-3 { background: var(--tile-3); }
     .tile-4 { background: var(--tile-4); }
     .tile-5 { background: var(--tile-5); }
-    .tile-6 { background: var(--tile-6); color: #f1f3ff; }
+    .tile-6 { background: var(--tile-6); color: #111217; }
     .tile-7 { background: var(--tile-7); }
     .tile-8 { background: var(--tile-8); }
 
@@ -362,7 +341,7 @@
 
 <body>
   <div class="app">
-    <!-- LEFT PANEL: logo + copy over video background -->
+    <!-- LEFT PANEL: logo + instruction over video background -->
     <section class="left-panel" aria-label="Game information">
       <video
         id="bg-video"
@@ -372,7 +351,7 @@
         playsinline
       >
         <source src="/bg.webm" type="video/webm" />
-        <!-- Silent fallback; background just becomes solid. -->
+        <!-- fallback for unsupported browsers -->
       </video>
 
       <div class="left-panel-content">
@@ -382,10 +361,6 @@
           class="logo"
         />
 
-        <p class="tagline">Concept Sorting Game</p>
-        <p class="description">
-          Six tiles, one hidden spectrum. Arrange the concepts from one end of the idea-space to the other.
-        </p>
         <p class="instructions">
           Drag the tiles until you think they’re in the correct order.
         </p>
@@ -404,48 +379,39 @@
 
         <div class="tiles-wrapper">
           <ul id="tile-list" class="tiles" aria-label="Reorder tiles to solve the puzzle">
-            <!--
-              data-correct-index defines the true order along the hidden spectrum.
-              You can expand to 7–8 tiles by adding <li> and a matching .tile-N class.
-            -->
+            <!-- Each tile defines its true order via data-correct-index. Numbers are removed. -->
             <li class="tile tile-1" data-correct-index="0">
               <div class="tile-text">
-                <div class="tile-label">1</div>
                 <div>Stone-age tech</div>
               </div>
               <div class="tile-handle" aria-hidden="true">⋮⋮</div>
             </li>
             <li class="tile tile-2" data-correct-index="1">
               <div class="tile-text">
-                <div class="tile-label">2</div>
                 <div>Analog &amp; mechanical</div>
               </div>
               <div class="tile-handle" aria-hidden="true">⋮⋮</div>
             </li>
             <li class="tile tile-3" data-correct-index="2">
               <div class="tile-text">
-                <div class="tile-label">3</div>
                 <div>Early digital</div>
               </div>
               <div class="tile-handle" aria-hidden="true">⋮⋮</div>
             </li>
             <li class="tile tile-4" data-correct-index="3">
               <div class="tile-text">
-                <div class="tile-label">4</div>
                 <div>Modern consumer tech</div>
               </div>
               <div class="tile-handle" aria-hidden="true">⋮⋮</div>
             </li>
             <li class="tile tile-5" data-correct-index="4">
               <div class="tile-text">
-                <div class="tile-label">5</div>
                 <div>Cutting-edge research</div>
               </div>
               <div class="tile-handle" aria-hidden="true">⋮⋮</div>
             </li>
             <li class="tile tile-6" data-correct-index="5">
               <div class="tile-text">
-                <div class="tile-label">6</div>
                 <div>Speculative sci-fi</div>
               </div>
               <div class="tile-handle" aria-hidden="true">⋮⋮</div>
@@ -485,7 +451,7 @@
       const shuffleButton = document.getElementById("shuffle-button");
       const puzzleLengthLabel = document.getElementById("puzzle-length-label");
 
-      // Ensure each tile has a correct index; this is the "true" conceptual order.
+      // Build the correct order array from each tile's dataset.correctIndex
       const correctOrder = tiles
         .slice()
         .sort(
@@ -493,8 +459,9 @@
             Number(a.dataset.correctIndex) - Number(b.dataset.correctIndex)
         )
         .map((tile) => tile.dataset.correctIndex);
+      const reversedOrder = [...correctOrder].reverse();
 
-      // Label for UI (works whether you use 6, 7, or 8 tiles)
+      // Set the UI label based on current number of tiles
       puzzleLengthLabel.textContent = `${tiles.length} tile${
         tiles.length === 1 ? "" : "s"
       }`;
@@ -508,15 +475,22 @@
       function isCorrectOrder() {
         const current = getCurrentOrder();
         if (current.length !== correctOrder.length) return false;
-        for (let i = 0; i < current.length; i++) {
-          if (current[i] !== correctOrder[i]) return false;
-        }
-        return true;
+        // Compare with forward and reversed orders
+        const isForward = current.every(
+          (val, idx) => val === String(correctOrder[idx])
+        );
+        const isBackward = current.every(
+          (val, idx) => val === String(reversedOrder[idx])
+        );
+        return isForward || isBackward;
       }
 
       function setStatus(message, variant) {
         statusMessage.textContent = message || "";
-        statusMessage.classList.remove("status--correct", "status--incorrect");
+        statusMessage.classList.remove(
+          "status--correct",
+          "status--incorrect"
+        );
         if (variant) {
           statusMessage.classList.add(`status--${variant}`);
         }
@@ -532,7 +506,7 @@
         setStatus("Shuffled. Try again.", null);
       }
 
-      // Initialize SortableJS with the requested settings
+      // Initialize SortableJS with the specified settings
       Sortable.create(tileList, {
         animation: 150,
         forceFallback: true,
@@ -555,7 +529,7 @@
         shuffleTiles();
       });
 
-      // Optional: shuffle on first load so the user doesn’t see the answer.
+      // Initial shuffle so the order isn't solved on first load
       shuffleTiles();
     });
   </script>
