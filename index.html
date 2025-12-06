@@ -336,6 +336,81 @@
         width: auto;
       }
     }
+
+    /* Completion wipe overlay styles */
+    .completion-wipe {
+      position: fixed;
+      inset: 0;
+      background: #ff6361;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    .completion-wipe.is-active {
+      display: flex;
+      animation: wipe-fade-in 0.25s ease-out forwards;
+    }
+
+    @keyframes wipe-fade-in {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .wipe-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .wipe-bars {
+      position: absolute;
+      inset: 0;
+      display: flex;
+    }
+
+    .wipe-bar {
+      flex: 1;
+      transform: translateX(-120%);
+      opacity: 0.95;
+    }
+    .wipe-bar-1 { background: var(--tile-1); }
+    .wipe-bar-2 { background: var(--tile-2); }
+    .wipe-bar-3 { background: var(--tile-3); }
+    .wipe-bar-4 { background: var(--tile-4); }
+    .wipe-bar-5 { background: var(--tile-5); }
+    .wipe-bar-6 { background: var(--tile-6); }
+
+    .completion-wipe.is-active .wipe-bar {
+      animation: wipe-slide 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .wipe-bar-1 { animation-delay: 0s; }
+    .wipe-bar-2 { animation-delay: 0.05s; }
+    .wipe-bar-3 { animation-delay: 0.10s; }
+    .wipe-bar-4 { animation-delay: 0.15s; }
+    .wipe-bar-5 { animation-delay: 0.20s; }
+    .wipe-bar-6 { animation-delay: 0.25s; }
+
+    @keyframes wipe-slide {
+      0%   { transform: translateX(-120%); }
+      70%  { transform: translateX(0); }
+      100% { transform: translateX(120%); opacity: 0; }
+    }
+
+    .wipe-logo {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .wipe-logo .logo {
+      max-width: 320px;
+      width: 70%;
+    }
   </style>
 </head>
 
@@ -439,6 +514,27 @@
     </section>
   </div>
 
+  <!-- Completion wipe overlay -->
+  <div id="completion-wipe" class="completion-wipe" aria-hidden="true">
+    <div class="wipe-inner">
+      <div class="wipe-bars">
+        <div class="wipe-bar wipe-bar-1"></div>
+        <div class="wipe-bar wipe-bar-2"></div>
+        <div class="wipe-bar wipe-bar-3"></div>
+        <div class="wipe-bar wipe-bar-4"></div>
+        <div class="wipe-bar wipe-bar-5"></div>
+        <div class="wipe-bar wipe-bar-6"></div>
+      </div>
+      <div class="wipe-logo">
+        <img
+          src="Ordinal%20Logo-01-01.png"
+          alt="Ordinal logo"
+          class="logo"
+        />
+      </div>
+    </div>
+  </div>
+
   <!-- SortableJS (CDN) -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 
@@ -506,6 +602,17 @@
         setStatus("Shuffled. Try again.", null);
       }
 
+      // Show the completion wipe overlay when the puzzle is solved
+      function triggerCompletionWipe() {
+        const wipe = document.getElementById("completion-wipe");
+        if (!wipe) return;
+        wipe.classList.add("is-active");
+        // Optionally hide the overlay after some time if needed
+        // setTimeout(() => {
+        //   wipe.classList.remove("is-active");
+        // }, 2200);
+      }
+
       // Initialize SortableJS with the specified settings
       Sortable.create(tileList, {
         animation: 150,
@@ -520,6 +627,7 @@
       checkButton.addEventListener("click", () => {
         if (isCorrectOrder()) {
           setStatus("Perfect order. Spectrum unlocked.", "correct");
+          triggerCompletionWipe();
         } else {
           setStatus("Not quite yet. Adjust and try again.", "incorrect");
         }
